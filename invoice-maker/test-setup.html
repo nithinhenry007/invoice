@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Invoice Maker - Test Setup</title>
+<style>
+  body { font-family: monospace; background: #0a0a14; color: #e2e8f0; padding: 20px; max-width: 800px; margin: 0 auto; }
+  h1 { color: #818cf8; }
+  .btn { display: inline-block; padding: 12px 24px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; margin: 8px 4px; text-decoration: none; }
+  .btn:hover { background: #6366f1; }
+  .btn.success { background: #10b981; }
+  .btn.danger { background: #ef4444; }
+  pre { background: #1a1a2e; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); }
+  .status { padding: 12px; border-radius: 8px; margin: 10px 0; }
+  .status.ok { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; }
+  .status.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; }
+</style>
+</head>
+<body>
+<h1>⚡ Invoice Maker - Browser Test Setup</h1>
+<p>This page sets up test data in your browser's localStorage so you can test the invoice creation feature.</p>
+
+<h2>Step 1: Inject Test Data</h2>
+<button class="btn success" onclick="injectTestData()">🚀 Inject Test Data & Open App</button>
+<button class="btn danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+<button class="btn" onclick="showCurrentData()">📋 Show Current localStorage</button>
+
+<div id="status"></div>
+<pre id="output">Click a button to get started...</pre>
+
+<h2>Step 2: Open Invoice App</h2>
+<a class="btn" href="/index.html" target="_blank">Open Invoice App →</a>
+
+<script>
+function showStatus(msg, type = 'ok') {
+  const el = document.getElementById('status');
+  el.innerHTML = `<div class="status ${type}">${msg}</div>`;
+}
+
+function injectTestData() {
+  try {
+    const userId = 'usr_testuser';
+    
+    // Company settings
+    const settings = {
+      user_id: userId,
+      company_name: 'NISSI ENTERPRISES',
+      gstin: '36AABCN1234A1Z5',
+      company_address: 'Ramanthapur, Hyderabad, Telangana - 500013',
+      tagline: 'FRP MANUFACTURERS',
+      phone: '+91 98765 43210',
+      email: 'billing@nissi.com',
+      bank_name: 'State Bank of India',
+      account_no: '1234567890',
+      ifsc_code: 'SBIN0001234',
+      upi_id: 'nissi@sbi',
+      invoice_prefix: 'INV',
+      default_gst_rate: 18,
+      currency_symbol: '₹',
+      default_terms: 'Advance of 50% of order value along with purchase order. Balance at the time of Delivery.',
+    };
+    localStorage.setItem(`invoice_settings_${userId}`, JSON.stringify(settings));
+    
+    // Test invoice
+    const testInvoice = {
+      id: 'inv_test_001',
+      user_id: userId,
+      document_type: 'INVOICE',
+      invoice_number: 'INV-2026-0001',
+      invoice_name: 'FRP Tank Supply - Oct 2026',
+      invoice_date: new Date().toISOString().split('T')[0],
+      due_date: null,
+      status: 'draft',
+      client_name: 'ABC Industries Pvt Ltd',
+      client_address: 'Plot No 45, Industrial Area, Pune - 411001',
+      client_gstin: '27AABCA1234A1Z5',
+      client_phone: '+91 98765 00001',
+      client_email: 'purchase@abcindustries.com',
+      ship_address: '',
+      subject: 'Supply of FRP TANK 35KL',
+      opener: 'Dear Customer,\nThank you for doing business with us. Please find below the detailed invoice for the products/services provided as per agreed terms:',
+      closer: 'Thank you for your business! We appreciate your prompt payment.\nWarm regards,',
+      gst_type: 'cgst_sgst',
+      gst_rate: 18,
+      discount: 0,
+      subtotal: 150000,
+      gst_amount: 27000,
+      total: 177000,
+      notes: 'Delivery within 30 days from receipt of advance payment.',
+      terms: 'Advance of 50% of order value. Balance at delivery.',
+      specifications: 'FRP Tank 35KL capacity, vertical cylindrical, open top with lid, UV stabilized.',
+      items: [
+        {
+          description: 'FRP TANK 35KL - Vertical Cylindrical, Open Top with Lid',
+          hsn_code: '3925',
+          quantity: 1,
+          unit: 'nos',
+          unit_price: 150000,
+          amount: 150000
+        }
+      ],
+      updated_at: new Date().toISOString()
+    };
+    localStorage.setItem(`invoice_data_${userId}`, JSON.stringify([testInvoice]));
+    
+    // User session
+    const user = {
+      id: userId,
+      email: 'testuser@app.local',
+      username: 'testuser',
+      name: 'Test User'
+    };
+    localStorage.setItem('current_user_session', JSON.stringify(user));
+    
+    showStatus('✅ Test data injected! Click "Open Invoice App" to test.', 'ok');
+    document.getElementById('output').textContent = JSON.stringify({
+      user: user,
+      settings: { company_name: settings.company_name, invoice_prefix: settings.invoice_prefix },
+      invoice_count: 1,
+      test_invoice: { number: testInvoice.invoice_number, client: testInvoice.client_name, total: testInvoice.total }
+    }, null, 2);
+    
+    // Auto-open the app
+    setTimeout(() => window.open('/index.html', '_blank'), 500);
+  } catch(e) {
+    showStatus('❌ Error: ' + e.message, 'error');
+  }
+}
+
+function clearAllData() {
+  if (confirm('Clear all invoice data from localStorage?')) {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith('invoice_') || k.startsWith('current_user_'));
+    keys.forEach(k => localStorage.removeItem(k));
+    showStatus('Cleared ' + keys.length + ' keys from localStorage.', 'ok');
+    document.getElementById('output').textContent = 'Data cleared: ' + keys.join(', ');
+  }
+}
+
+function showCurrentData() {
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k.startsWith('invoice_') || k.startsWith('current_user_') || k.startsWith('registered_')) {
+      try {
+        data[k] = JSON.parse(localStorage.getItem(k));
+      } catch(e) {
+        data[k] = localStorage.getItem(k);
+      }
+    }
+  }
+  document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+  showStatus('Found ' + Object.keys(data).length + ' keys', 'ok');
+}
+</script>
+</body>
+</html>

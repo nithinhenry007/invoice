@@ -497,7 +497,7 @@
       </div>
 
       <div class="card">
-        <form id="invoice-form" onsubmit="saveInvoice(event)">
+        <form id="invoice-form" onsubmit="event.preventDefault(); saveInvoice(event)">
           <div class="form-section">
             <div class="form-section-title">Invoice Details</div>
             <div class="form-row">

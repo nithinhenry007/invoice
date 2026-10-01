@@ -426,6 +426,13 @@ async function saveInvoice(e) {
       btn.disabled = false;
       btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Invoice';
     }
+
+    // Navigate to dashboard if triggered directly by the Save Invoice button (e is present)
+    if (e && typeof navigateTo === 'function') {
+      navigateTo('dashboard');
+      if (typeof renderDashboard === 'function') renderDashboard();
+    }
+
     return invoiceId;
   } catch (err) {
     console.error('saveInvoice error:', err);
@@ -439,6 +446,12 @@ async function saveInvoice(e) {
 }
 
 async function saveAndPreview() {
+  const form = document.getElementById('invoice-form');
+  if (form && !form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  
   const invoiceId = await saveInvoice();
   if (invoiceId) {
     await showInvoicePreview(invoiceId);
